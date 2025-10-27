@@ -29,7 +29,7 @@ router.put(
   salesInquiryController.updateSalesInquiry
 );
 
-// router.put("/:id")
+router.put("/:id/status", salesInquiryController.updateInquiryStatus);
 
 router.delete("/:id", salesInquiryController.deleteSalesInquiry);
 
