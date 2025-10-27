@@ -72,6 +72,7 @@ module.exports.login = async (req, res) => {
       status: true,
       message: "Customer login successfully",
       data: {
+        customer: isExists,
         token,
       },
     });

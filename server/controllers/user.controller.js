@@ -68,6 +68,7 @@ module.exports.login = async (req, res) => {
       status: true,
       message: "User login successfully",
       data: {
+        user: isExists,
         token,
       },
     });
