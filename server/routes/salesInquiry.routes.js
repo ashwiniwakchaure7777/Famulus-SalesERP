@@ -29,6 +29,8 @@ router.put(
   salesInquiryController.updateSalesInquiry
 );
 
+// router.put("/:id")
+
 router.delete("/:id", salesInquiryController.deleteSalesInquiry);
 
 module.exports = router;

@@ -327,3 +327,42 @@ module.exports.deleteSalesInquiry = asyncHandler(async (req, res) => {
     ERROR_RESPONSE(res, error);
   }
 });
+
+module.exports.updateInquiryStatus = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const { user } = req;
+
+    const userDetails = await findSingleUserService({
+      where: { ID: user.id },
+    });
+
+    if (!userDetails || userDetails.status == "Inactive") {
+      return res.status(201).json({
+        status: false,
+        message: "Customer not found or customer is inactive",
+      });
+    }
+
+    const affectedRow = await updateSalesInquiryService(
+      { where: { ID: id } },
+      { status },
+      { transaction }
+    );
+
+    if (affectedRow.updatedCount === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "Sales inquiry not found",
+      });
+    }
+
+    res.status(201).json({
+      status: true,
+      message: `Inquiry status to ${status} updated successfully`,
+    })
+  } catch (error) {
+    ERROR_RESPONSE(res, error)
+  }
+})
