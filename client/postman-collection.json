@@ -1,0 +1,231 @@
+{
+  "info": {
+    "name": "ERP Management System API",
+    "description": "API collection for Customer & Sales Inquiry Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Get All Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customers?page=1&limit=10&search=&businessType=&status=",
+              "host": ["{{base_url}}"],
+              "path": ["customers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" },
+                { "key": "businessType", "value": "" },
+                { "key": "status", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customers/:id",
+              "host": ["{{base_url}}"],
+              "path": ["customers", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"ABC Corporation\",\n  \"email\": \"contact@abc.com\",\n  \"phoneNumber\": \"9876543210\",\n  \"businessType\": \"wholesaler\",\n  \"creditLimit\": 100000,\n  \"addressStreet\": \"123 Main St\",\n  \"addressCity\": \"Mumbai\",\n  \"addressState\": \"Maharashtra\",\n  \"addressPincode\": \"400001\",\n  \"gstNumber\": \"27ABCDE1234F1Z5\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers",
+              "host": ["{{base_url}}"],
+              "path": ["customers"]
+            }
+          }
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"ABC Corporation Ltd\",\n  \"creditLimit\": 150000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers/:id",
+              "host": ["{{base_url}}"],
+              "path": ["customers", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Customer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customers/:id",
+              "host": ["{{base_url}}"],
+              "path": ["customers", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sales Inquiries",
+      "item": [
+        {
+          "name": "Get All Inquiries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inquiries?page=1&limit=10&status=&priority=&dateFrom=&dateTo=",
+              "host": ["{{base_url}}"],
+              "path": ["inquiries"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "" },
+                { "key": "priority", "value": "" },
+                { "key": "dateFrom", "value": "" },
+                { "key": "dateTo", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Inquiry by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inquiries/:id",
+              "host": ["{{base_url}}"],
+              "path": ["inquiries", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Inquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"customer_id_here\",\n  \"inquiryDate\": \"2024-01-15\",\n  \"expectedDeliveryDate\": \"2024-02-15\",\n  \"status\": \"draft\",\n  \"priority\": \"medium\",\n  \"remarks\": \"Urgent delivery required\",\n  \"lineItems\": [\n    {\n      \"productName\": \"Widget A\",\n      \"description\": \"Premium widget\",\n      \"quantity\": 100,\n      \"unit\": \"pcs\",\n      \"expectedUnitPrice\": 50\n    },\n    {\n      \"productName\": \"Widget B\",\n      \"description\": \"Standard widget\",\n      \"quantity\": 200,\n      \"unit\": \"pcs\",\n      \"expectedUnitPrice\": 30\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inquiries",
+              "host": ["{{base_url}}"],
+              "path": ["inquiries"]
+            }
+          }
+        },
+        {
+          "name": "Update Inquiry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"submitted\",\n  \"remarks\": \"Updated remarks\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inquiries/:id",
+              "host": ["{{base_url}}"],
+              "path": ["inquiries", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Inquiry Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"quoted\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inquiries/:id/status",
+              "host": ["{{base_url}}"],
+              "path": ["inquiries", ":id", "status"]
+            }
+          }
+        },
+        {
+          "name": "Get Status Counts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inquiries/status/count",
+              "host": ["{{base_url}}"],
+              "path": ["inquiries", "status", "count"]
+            }
+          }
+        },
+        {
+          "name": "Delete Inquiry",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inquiries/:id",
+              "host": ["{{base_url}}"],
+              "path": ["inquiries", ":id"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    }
+  ]
+}
+
