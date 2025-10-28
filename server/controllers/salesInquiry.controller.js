@@ -11,41 +11,44 @@ const {
   deleteLineItemService,
   updateLineItemService,
   createLineItemService,
+  findAllLineItemService,
 } = require("../services/salesInquiry.services");
 const sequelize = require("../config/sequelizedb");
 const { findSingleUserService } = require("../services/user.services");
+const { findSingleCustomerService } = require("../services/customer.services");
 const { Op } = require("sequelize");
 const { getPagination } = require("../utils/pagination");
 const ERROR_RESPONSE = require("../utils/handleError");
+const { generateInquiryNumber } = require("../utils/inquiryNumberGenerator");
+const SALES_INQUIRY_ITEM_MODEL = require("../models/salesInquiryLineItem.model");
 
 module.exports.createSalesInquiry = asyncHandler(async (req, res) => {
-  let transaction;
+  const transaction = await sequelize.transaction();
   try {
     let { line_items, ...inquiryData } = req.body;
     const { user } = req;
-
-    if (user.role !== "user" && id !== user.id) {
-      return res.status(403).json({
-        status: false,
-        message: "You are not authorized to create a sales inquiry",
-      });
-    }
-
-
-    transaction = await sequelize.transaction();
-
-    const userDetails = await findSingleUserService({
+    console.log(user);
+    const customerDetails = await findSingleCustomerService({
       where: { ID: user.id },
       transaction,
     });
 
-    if (!userDetails || userDetails.status == "Inactive") {
+    if (!customerDetails || customerDetails.status == "Inactive") {
       await transaction.rollback();
       return res.status(201).json({
         status: false,
         message: "Customer not found or customer is inactive",
       });
     }
+
+    // Generate inquiry_number if not provided
+    if (!inquiryData.inquiry_number) {
+      inquiryData.inquiry_number = await generateInquiryNumber();
+      console.log("Generated inquiry_number:", inquiryData.inquiry_number);
+    }
+
+    // Set customer_id from token
+    inquiryData.customer_id = user.id;
 
     const inquiry = await createSalesInquiryService(inquiryData, {
       transaction,
@@ -84,7 +87,9 @@ module.exports.createSalesInquiry = asyncHandler(async (req, res) => {
       data: inquiry,
     });
   } catch (error) {
-    await transaction.commit();
+    if (!transaction.finished) {
+      await transaction.rollback();
+    }
     ERROR_RESPONSE(res, error);
   }
 });
@@ -101,6 +106,8 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
       sort = "DESC",
     } = req.query;
 
+    const { user } = req;
+
     const where = {};
 
     page = isNaN(page) ? 1 : parseInt(page);
@@ -116,6 +123,10 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
 
     if (priority) {
       where.priority = priority;
+    }
+
+    if (user.role == "customer") {
+      where.customer_id = user.id;
     }
 
     if (customer_id) {
@@ -156,6 +167,12 @@ module.exports.getSalesInquiryById = asyncHandler(async (req, res) => {
 
     const inquiry = await findSingleSalesInquiryService({
       where: { ID: id },
+      include: [
+        {
+          model: SALES_INQUIRY_ITEM_MODEL,
+          as: "lineItems",
+        },
+      ],
     });
 
     if (!inquiry) {
@@ -164,8 +181,8 @@ module.exports.getSalesInquiryById = asyncHandler(async (req, res) => {
         message: "Sales inquiry not found",
       });
     }
-
-    if (user?.id !== id) {
+    
+    if (user.role !== "user" && user?.id !== inquiry?.customer_id) {
       return res.status(403).json({
         status: false,
         message: "You can't access the other customer's inquiry",
@@ -189,40 +206,38 @@ module.exports.updateSalesInquiry = asyncHandler(async (req, res) => {
 
     let { line_items, ...inquiryData } = req.body;
 
-    if (user?.id !== id) {
-      return res.status(403).json({
-        status: false,
-        message: "You can't access the other customer's inquiry",
-      });
-    }
-
-    const [userDetails, inquiry, lineItems] = await Promise.all([
-      findSingleUserService({
-        where: { ID: user.id },
-        transaction,
-      }),
-      findSingleSalesInquiryService({
-        where: { ID: id },
-        transaction,
-      }),
-      createBulkSalesInquiryItemsService(line_items, {
-        transaction,
-      }),
-    ]);
+    // First, check if the inquiry exists and user is authorized
+    const inquiry = await findSingleSalesInquiryService({
+      where: { ID: id },
+      transaction,
+    });
 
     if (!inquiry) {
+      await transaction.rollback();
       return res.status(404).json({
         status: false,
         message: "Sales inquiry not found",
       });
     }
 
-    if (user.role !== "user" && inquiry.customer_id !== user.id) {
+    if (user.role != "user" && inquiry.customer_id !== user?.id) {
+      await transaction.rollback();
       return res.status(403).json({
         status: false,
-        message: "You are not authorized to delete this sales inquiry",
+        message: "You are not authorized to update this sales inquiry",
       });
     }
+
+    // Now fetch customer details and existing line items
+    const customerDetails = await findSingleCustomerService({
+      where: { ID: user.id },
+      transaction,
+    });
+
+    const lineItems = await findAllLineItemService({
+      where: { sales_inquiry_id: id },
+      transaction,
+    });
 
     const affectedRow = await updateSalesInquiryService(
       { where: { ID: id } },
@@ -253,11 +268,17 @@ module.exports.updateSalesInquiry = asyncHandler(async (req, res) => {
 
     if (lineItemsToBeUpdated.length > 0) {
       const updated = await Promise.all(
-        lineItemsToBeUpdated.map((item) =>
-          updateLineItemService({ where: { ID: item.ID } }, item, {
-            transaction,
-          })
-        )
+        lineItemsToBeUpdated.map((item) => {
+          // Find the existing line item by product_name
+          const existingItem = lineItems.find(li => li.product_name === item.product_name);
+          // Extract only updatable fields (exclude product_name and sales_inquiry_id)
+          const { product_name, sales_inquiry_id, ...updateData } = item;
+          return updateLineItemService(
+            { where: { ID: existingItem.ID } }, 
+            updateData,
+            { transaction }
+          );
+        })
       );
       if (updated.some((item) => item.updatedCount === 0)) {
         await transaction.rollback();
@@ -299,7 +320,9 @@ module.exports.updateSalesInquiry = asyncHandler(async (req, res) => {
       message: "Inquiry updated successfully",
     });
   } catch (error) {
-    await transaction.rollback();
+    if (!transaction.finished) {
+      await transaction.rollback();
+    }
     ERROR_RESPONSE(res, error);
   }
 });
@@ -353,11 +376,11 @@ module.exports.updateInquiryStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
     const { user } = req;
 
-    const userDetails = await findSingleUserService({
+    const customerDetails = await findSingleCustomerService({
       where: { ID: user.id },
     });
 
-    if (!userDetails || userDetails.status == "Inactive") {
+    if (!customerDetails || customerDetails.status == "Inactive") {
       return res.status(201).json({
         status: false,
         message: "Customer not found or customer is inactive",
@@ -367,7 +390,6 @@ module.exports.updateInquiryStatus = asyncHandler(async (req, res) => {
     const affectedRow = await updateSalesInquiryService(
       { where: { ID: id } },
       { status },
-      { transaction }
     );
 
     if (affectedRow.updatedCount === 0) {

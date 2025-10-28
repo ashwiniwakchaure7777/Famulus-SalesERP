@@ -8,6 +8,9 @@ const {
   query,
 } = require("../validator/salesInquiry.validator");
 const validateRequest = require("../middlewares/validateRequest");
+const { authentication } = require("../middlewares/authentication");
+
+router.use(authentication);
 
 router.post(
   "/",

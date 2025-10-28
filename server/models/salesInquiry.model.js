@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/database");
-const moment = require("moment");
 
 const SALES_INQUIRY_MODEL = sequelize.define(
   "SalesInquiry",
@@ -60,34 +59,6 @@ const SALES_INQUIRY_MODEL = sequelize.define(
     tableName: "sales_inquiries",
     timestamps: true,
     paranoid: true,
-    hooks: {
-      beforeCreate: async (inquiry) => {
-        if (!inquiry.inquiry_number) {
-          const year = moment().year();
-          const month = moment().format("MM");
-          const lastInquiry = await SalesInquiry.findOne({
-            where: {
-              inquiry_number: {
-                [sequelize.Sequelize.Op.like]: `INQ-${year}-${month}-%`,
-              },
-            },
-            order: [["inquiry_number", "DESC"]],
-          });
-
-          let nextNumber = 1;
-          if (lastInquiry) {
-            const lastNumber = parseInt(
-              lastInquiry.inquiry_number.split("-")[3]
-            );
-            nextNumber = lastNumber + 1;
-          }
-
-          inquiry.inquiry_number = `INQ-${year}-${month}-${nextNumber
-            .toString()
-            .padStart(4, "0")}`;
-        }
-      },
-    },
   }
 );
 

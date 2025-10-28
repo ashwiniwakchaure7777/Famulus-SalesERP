@@ -166,6 +166,60 @@ const salesInquiryValidationSchemas = {
       .optional()
       .messages({
         'string.max': 'Modified by cannot exceed 100 characters'
+      }),
+    
+    line_items: Joi.array()
+      .items(
+        Joi.object({
+          product_name: Joi.string()
+            .min(1)
+            .max(255)
+            .optional()
+            .messages({
+              'string.empty': 'Product name is required',
+              'string.min': 'Product name cannot be empty',
+              'string.max': 'Product name cannot exceed 255 characters'
+            }),
+          
+          description: Joi.string()
+            .max(1000)
+            .optional()
+            .allow('')
+            .messages({
+              'string.max': 'Description cannot exceed 1000 characters'
+            }),
+          
+          quantity: Joi.number()
+            .positive()
+            .precision(2)
+            .optional()
+            .messages({
+              'number.base': 'Quantity must be a number',
+              'number.positive': 'Quantity must be positive',
+              'number.precision': 'Quantity can have maximum 2 decimal places'
+            }),
+          
+          unit: Joi.string()
+            .valid('Pcs', 'Kg', 'Ltr', 'Mtr')
+            .optional()
+            .messages({
+              'any.only': 'Unit must be one of: Pcs, Kg, Ltr, Mtr'
+            }),
+          
+          expected_unit_price: Joi.number()
+            .min(0)
+            .precision(2)
+            .optional()
+            .messages({
+              'number.base': 'Expected unit price must be a number',
+              'number.min': 'Expected unit price cannot be negative',
+              'number.precision': 'Expected unit price can have maximum 2 decimal places'
+            })
+        })
+      )
+      .optional()
+      .messages({
+        'array.min': 'Must have at least 1 line item'
       })
   }),
 
@@ -253,11 +307,14 @@ const salesInquiryValidationSchemas = {
         'number.max': 'Limit cannot exceed 100'
       }),
     
-    customer_id: Joi.number()
-      .integer()
-      .positive()
+    customer_id: Joi.alternatives()
+      .try(
+        Joi.number().integer().positive(),
+        Joi.string().allow('')
+      )
       .optional()
       .messages({
+        'alternatives.match': 'Customer ID must be a number or empty',
         'number.base': 'Customer ID must be a number',
         'number.integer': 'Customer ID must be an integer',
         'number.positive': 'Customer ID must be positive'
@@ -266,6 +323,7 @@ const salesInquiryValidationSchemas = {
     status: Joi.string()
       .valid('Draft', 'Submitted', 'Quoted', 'Won', 'Lost')
       .optional()
+      .allow('')
       .messages({
         'any.only': 'Status must be one of: Draft, Submitted, Quoted, Won, Lost'
       }),
@@ -273,8 +331,17 @@ const salesInquiryValidationSchemas = {
     priority: Joi.string()
       .valid('Low', 'Medium', 'High')
       .optional()
+      .allow('')
       .messages({
         'any.only': 'Priority must be one of: Low, Medium, High'
+      }),
+    
+    search: Joi.string()
+      .max(255)
+      .optional()
+      .allow('')
+      .messages({
+        'string.max': 'Search term cannot exceed 255 characters'
       }),
     
     date_from: Joi.date()

@@ -1,231 +1,474 @@
 {
-  "info": {
-    "name": "ERP Management System API",
-    "description": "API collection for Customer & Sales Inquiry Management System",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Customers",
-      "item": [
-        {
-          "name": "Get All Customers",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/customers?page=1&limit=10&search=&businessType=&status=",
-              "host": ["{{base_url}}"],
-              "path": ["customers"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" },
-                { "key": "search", "value": "" },
-                { "key": "businessType", "value": "" },
-                { "key": "status", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Customer by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/customers/:id",
-              "host": ["{{base_url}}"],
-              "path": ["customers", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Create Customer",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customerName\": \"ABC Corporation\",\n  \"email\": \"contact@abc.com\",\n  \"phoneNumber\": \"9876543210\",\n  \"businessType\": \"wholesaler\",\n  \"creditLimit\": 100000,\n  \"addressStreet\": \"123 Main St\",\n  \"addressCity\": \"Mumbai\",\n  \"addressState\": \"Maharashtra\",\n  \"addressPincode\": \"400001\",\n  \"gstNumber\": \"27ABCDE1234F1Z5\",\n  \"status\": \"active\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/customers",
-              "host": ["{{base_url}}"],
-              "path": ["customers"]
-            }
-          }
-        },
-        {
-          "name": "Update Customer",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customerName\": \"ABC Corporation Ltd\",\n  \"creditLimit\": 150000\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/customers/:id",
-              "host": ["{{base_url}}"],
-              "path": ["customers", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Delete Customer",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/customers/:id",
-              "host": ["{{base_url}}"],
-              "path": ["customers", ":id"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Sales Inquiries",
-      "item": [
-        {
-          "name": "Get All Inquiries",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/inquiries?page=1&limit=10&status=&priority=&dateFrom=&dateTo=",
-              "host": ["{{base_url}}"],
-              "path": ["inquiries"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" },
-                { "key": "status", "value": "" },
-                { "key": "priority", "value": "" },
-                { "key": "dateFrom", "value": "" },
-                { "key": "dateTo", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Inquiry by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/inquiries/:id",
-              "host": ["{{base_url}}"],
-              "path": ["inquiries", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Create Inquiry",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customer\": \"customer_id_here\",\n  \"inquiryDate\": \"2024-01-15\",\n  \"expectedDeliveryDate\": \"2024-02-15\",\n  \"status\": \"draft\",\n  \"priority\": \"medium\",\n  \"remarks\": \"Urgent delivery required\",\n  \"lineItems\": [\n    {\n      \"productName\": \"Widget A\",\n      \"description\": \"Premium widget\",\n      \"quantity\": 100,\n      \"unit\": \"pcs\",\n      \"expectedUnitPrice\": 50\n    },\n    {\n      \"productName\": \"Widget B\",\n      \"description\": \"Standard widget\",\n      \"quantity\": 200,\n      \"unit\": \"pcs\",\n      \"expectedUnitPrice\": 30\n    }\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/inquiries",
-              "host": ["{{base_url}}"],
-              "path": ["inquiries"]
-            }
-          }
-        },
-        {
-          "name": "Update Inquiry",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"submitted\",\n  \"remarks\": \"Updated remarks\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/inquiries/:id",
-              "host": ["{{base_url}}"],
-              "path": ["inquiries", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Update Inquiry Status",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"quoted\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/inquiries/:id/status",
-              "host": ["{{base_url}}"],
-              "path": ["inquiries", ":id", "status"]
-            }
-          }
-        },
-        {
-          "name": "Get Status Counts",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/inquiries/status/count",
-              "host": ["{{base_url}}"],
-              "path": ["inquiries", "status", "count"]
-            }
-          }
-        },
-        {
-          "name": "Delete Inquiry",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/inquiries/:id",
-              "host": ["{{base_url}}"],
-              "path": ["inquiries", ":id"]
-            }
-          }
-        }
-      ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:3001/api",
-      "type": "string"
-    }
-  ]
+	"info": {
+		"name": "Famulus Sales ERP API",
+		"description": "Complete API collection for Customer and Sales Inquiry Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8056",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('authToken', jsonData.data.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123@\",\n  \"phone_number\": \"+1234567890\",\n  \"role\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('authToken', jsonData.data.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123@\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Customers",
+			"item": [
+				{
+					"name": "Register Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set('authToken', jsonData.data.token);",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_name\": \"ABC Enterprises\",\n  \"email\": \"contact@abcenterprises.com\",\n  \"phone_number\": \"+1234567890\",\n  \"business_type\": \"Wholesaler\",\n  \"password\": \"SecurePass123@\",\n  \"confirmPassword\": \"SecurePass123@\",\n  \"credit_limit\": 100000,\n  \"address_street\": \"123 Main Street\",\n  \"address_city\": \"New York\",\n  \"address_state\": \"NY\",\n  \"address_pincode\": \"10001\",\n  \"gst_number\": \"29ABCDE1234F1Z5\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "customers", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('authToken', jsonData.data.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"contact@abcenterprises.com\",\n  \"password\": \"SecurePass123@\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "customers", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get All Customers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers?page=1&limit=10&search=&business_type=&status=",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "customers"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "business_type",
+									"value": ""
+								},
+								{
+									"key": "status",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Customer by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "customers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Customer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_name\": \"ABC Enterprises Ltd\",\n  \"phone_number\": \"+1234567890\",\n  \"business_type\": \"Wholesaler\",\n  \"credit_limit\": 150000,\n  \"address_street\": \"123 Main Street, Suite 100\",\n  \"address_city\": \"New York\",\n  \"address_state\": \"NY\",\n  \"address_pincode\": \"10001\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "customers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Customer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "customers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Sales Inquiries",
+			"item": [
+				{
+					"name": "Create Sales Inquiry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"inquiry_date\": \"2025-10-27\",\n  \"expected_delivery_date\": \"2025-12-27\",\n  \"status\": \"Draft\",\n  \"priority\": \"High\",\n  \"remarks\": \"Urgent order for Q4 2025\",\n  \"line_items\": [\n    {\n      \"product_name\": \"Product A\",\n      \"description\": \"High quality product\",\n      \"quantity\": 100,\n      \"unit\": \"Pcs\",\n      \"expected_unit_price\": 50.00\n    },\n    {\n      \"product_name\": \"Product B\",\n      \"description\": \"Premium quality product\",\n      \"quantity\": 50,\n      \"unit\": \"Kg\",\n      \"expected_unit_price\": 75.00\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sales-inquiries"]
+						}
+					}
+				},
+				{
+					"name": "Get All Sales Inquiries",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries?page=1&limit=10&search=&status=&priority=&customer_id=",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sales-inquiries"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "status",
+									"value": ""
+								},
+								{
+									"key": "priority",
+									"value": ""
+								},
+								{
+									"key": "customer_id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Sales Inquiry by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sales-inquiries", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Sales Inquiry",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"inquiry_date\": \"2025-10-27\",\n  \"expected_delivery_date\": \"2025-12-30\",\n  \"status\": \"Submitted\",\n  \"priority\": \"Medium\",\n  \"remarks\": \"Updated order requirements\",\n  \"line_items\": [\n    {\n      \"product_name\": \"Product A\",\n      \"description\": \"High quality product - Updated\",\n      \"quantity\": 150,\n      \"unit\": \"Pcs\",\n      \"expected_unit_price\": 55.00\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sales-inquiries", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Sales Inquiry Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Quoted\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/:id/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sales-inquiries", ":id", "status"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Sales Inquiry",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sales-inquiries", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
 }
-

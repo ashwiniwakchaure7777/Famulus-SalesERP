@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { TokenExpiredError } = require("jsonwebtoken");
 const ERROR_RESPONSE = require("../utils/handleError");
+const { logger } = require("./error.middleware");
 
 module.exports.authentication = async (req, res, next) => {
   try {
@@ -15,6 +16,7 @@ module.exports.authentication = async (req, res, next) => {
       
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        logger.info(`Decoded token: ${decoded}`);
         req.user = decoded;
         next();
 

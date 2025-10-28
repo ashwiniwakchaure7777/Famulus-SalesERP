@@ -6,7 +6,9 @@ module.exports.createSalesInquiryService = async (payload, options = {}) => {
     const inquiry = await SALES_INQUIRY_MODEL.create(payload, options);
     return inquiry;
   } catch (error) {
-    throw new Error("Error while creating sales inquiry");
+    console.error("Error creating sales inquiry:", error.message);
+    console.error("Payload:", payload);
+    throw new Error(`Error while creating sales inquiry: ${error.message}`);
   }
 };
 
@@ -84,12 +86,12 @@ module.exports.createLineItemService = async (payload) => {
   }
 };
 
-module.exports.createBulkSalesInquiryItemsService = async (payload) => {
+module.exports.createBulkSalesInquiryItemsService = async (payload, options = {}) => {
   try {
-    const items = await SALES_INQUIRY_ITEM_MODEL.createBulk(payload);
+    const items = await SALES_INQUIRY_ITEM_MODEL.bulkCreate(payload, options);
     return items ? items.map((i) => i.toJSON()) : null;
   } catch (error) {
-    throw new Error("Error while creating line items in bulk");
+    throw new Error(`Error while creating line items in bulk: ${error.message}`);
   }
 };
 module.exports.findSingleLineItemService = async (query) => {
