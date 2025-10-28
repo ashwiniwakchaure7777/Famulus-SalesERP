@@ -181,7 +181,7 @@ module.exports.getSalesInquiryById = asyncHandler(async (req, res) => {
         message: "Sales inquiry not found",
       });
     }
-    
+
     if (user.role !== "user" && user?.id !== inquiry?.customer_id) {
       return res.status(403).json({
         status: false,
@@ -269,12 +269,10 @@ module.exports.updateSalesInquiry = asyncHandler(async (req, res) => {
     if (lineItemsToBeUpdated.length > 0) {
       const updated = await Promise.all(
         lineItemsToBeUpdated.map((item) => {
-          // Find the existing line item by product_name
           const existingItem = lineItems.find(li => li.product_name === item.product_name);
-          // Extract only updatable fields (exclude product_name and sales_inquiry_id)
           const { product_name, sales_inquiry_id, ...updateData } = item;
           return updateLineItemService(
-            { where: { ID: existingItem.ID } }, 
+            { where: { ID: existingItem.ID } },
             updateData,
             { transaction }
           );
