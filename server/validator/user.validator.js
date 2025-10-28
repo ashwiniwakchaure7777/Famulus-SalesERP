@@ -67,48 +67,41 @@ function userValidator(req, res, next) {
 
 function createUserValidator(req, res, next) {
   const schema = Joi.object({
-    name: Joi.string().min(3).max(50).required().messages({
-      "any.required": "Name is required",
-      "string.empty": "Name cannot be empty",
-      "string.min": "Name must be at least 3 characters",
-      "string.max": "Name must be at most 50 characters",
+    first_name: Joi.string().min(2).max(100).required().messages({
+      "any.required": "First name is required",
+      "string.empty": "First name cannot be empty",
+      "string.min": "First name must be at least 2 characters",
+      "string.max": "First name must be at most 100 characters",
     }),
-    username: Joi.string().min(3).max(50).optional().messages({
-      "string.empty": "Username cannot be empty",
-      "string.min": "Username must be at least 3 characters",
-      "string.max": "Username must be at most 50 characters",
+    last_name: Joi.string().min(2).max(100).required().messages({
+      "any.required": "Last name is required",
+      "string.empty": "Last name cannot be empty",
+      "string.min": "Last name must be at least 2 characters",
+      "string.max": "Last name must be at most 100 characters",
     }),
     email: Joi.string().email().required().messages({
       "any.required": "Email is required",
       "string.email": "Must be a valid email address",
       "string.empty": "Email cannot be empty",
     }),
-    phone: Joi.string()
-      .pattern(/^\+1\d{10}$/)
-      .required()
+    phone_number: Joi.string()
+      .pattern(/^[\+]?[1-9][\d]{0,15}$/)
+      .optional()
+      .allow("")
       .messages({
-        "any.required": "Phone is required",
-        "string.empty": "Phone cannot be empty",
-        "string.pattern.base": "Phone number must be in +1 format with 10 digits (e.g., +12135557654)",
+        "string.pattern.base": "Please provide a valid phone number",
       }),
-    profileImageUrl: Joi.string().uri().required().allow("").messages({
-      "string.uri": "Profile image must be a valid URI",
-    }),
     role: Joi.string()
-      .valid("admin", "operations", "support", "finance")
-      .required()
-      .messages({
-        "any.required": "Role is required",
-        "any.only": "Role must be one of admin, operations, support, finance",
-        "string.empty": "Role cannot be empty",
-      }),
-    status: Joi.string()
-      .valid("active", "inactive", "deleted", "disabled")
+      .valid("Admin", "Manager", "Sales", "User")
       .optional()
       .messages({
-        "any.required": "Status is required",
-        "any.only": "Status must be one of active, inactive, deleted, disabled",
-        "string.empty": "Status cannot be empty",
+        "any.only": "Role must be one of Admin, Manager, Sales, User",
+      }),
+    status: Joi.string()
+      .valid("Active", "Inactive", "Suspended")
+      .optional()
+      .messages({
+        "any.only": "Status must be one of Active, Inactive, Suspended",
       }),
     password: Joi.string().min(8).required().messages({
       "any.required": "Password is required",
@@ -119,16 +112,22 @@ function createUserValidator(req, res, next) {
       "any.only": "Password and confirm password do not match",
       "any.required": "Confirm password is required",
     }),
-    shiftTime: Joi.string().optional().allow("").messages({
-      "string.empty": "Shift time cannot be empty",
+    profile_picture: Joi.string().optional().allow("").messages({
+      "string.uri": "Profile picture must be a valid URL",
     }),
-    notes: Joi.string().optional().allow("").messages({
-      "string.empty": "Notes cannot be empty",
+    department: Joi.string().max(100).optional().allow("").messages({
+      "string.max": "Department cannot exceed 100 characters",
     }),
-    employeeId: Joi.string().optional().allow(null, "").messages({
-      "string.base": "Employee ID must be a string",
+    employee_id: Joi.string().max(50).optional().allow("").messages({
+      "string.max": "Employee ID cannot exceed 50 characters",
     }),
-    // Uniqueness for username/email must be checked in controller
+    date_of_birth: Joi.date().optional().messages({
+      "date.base": "Date of birth must be a valid date",
+    }),
+    joining_date: Joi.date().optional().messages({
+      "date.base": "Joining date must be a valid date",
+    }),
+    // Uniqueness for email must be checked in controller
   });
   const { error } = schema.validate(req.body, { abortEarly: false });
 

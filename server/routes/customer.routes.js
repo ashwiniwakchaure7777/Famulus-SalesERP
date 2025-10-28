@@ -8,6 +8,7 @@ const {
   queryCustomerSchema,
 } = require("../validator/customer.validator");
 const validateRequest = require("../middlewares/validateRequest");
+const { authentication } = require("../middlewares/authentication");
 
 router.post(
   "/register",
@@ -20,6 +21,8 @@ router.post(
   validateRequest(loginCustomerSchema),
   customerController.login
 );
+
+router.use(authentication);
 
 router.get(
   "/",

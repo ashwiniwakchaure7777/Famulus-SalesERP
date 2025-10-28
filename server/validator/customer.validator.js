@@ -263,6 +263,7 @@ const queryCustomerSchema = Joi.object({
   business_type: Joi.string()
     .valid("Retailer", "Wholesaler", "Distributor")
     .optional()
+    .allow("")
     .messages({
       "any.only": "Business type must be one of: Retailer, Wholesaler, Distributor",
     }),
@@ -270,6 +271,7 @@ const queryCustomerSchema = Joi.object({
   status: Joi.string()
     .valid("Active", "Inactive")
     .optional()
+    .allow("")
     .messages({
       "any.only": "Status must be either Active or Inactive",
     }),
@@ -300,6 +302,7 @@ const exportCustomersSchema = Joi.object({
   business_type: Joi.string()
     .valid("Retailer", "Wholesaler", "Distributor")
     .optional()
+    .allow("")
     .messages({
       "any.only": "Business type must be one of: Retailer, Wholesaler, Distributor",
     }),
@@ -307,6 +310,7 @@ const exportCustomersSchema = Joi.object({
   status: Joi.string()
     .valid("Active", "Inactive")
     .optional()
+    .allow("")
     .messages({
       "any.only": "Status must be either Active or Inactive",
     }),

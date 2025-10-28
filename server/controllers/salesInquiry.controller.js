@@ -24,6 +24,14 @@ module.exports.createSalesInquiry = asyncHandler(async (req, res) => {
     let { line_items, ...inquiryData } = req.body;
     const { user } = req;
 
+    if (user.role !== "user" && id !== user.id) {
+      return res.status(403).json({
+        status: false,
+        message: "You are not authorized to create a sales inquiry",
+      });
+    }
+
+
     transaction = await sequelize.transaction();
 
     const userDetails = await findSingleUserService({
@@ -202,11 +210,17 @@ module.exports.updateSalesInquiry = asyncHandler(async (req, res) => {
       }),
     ]);
 
-    if (!userDetails || userDetails.status == "Inactive") {
-      await transaction.rollback();
-      return res.status(201).json({
+    if (!inquiry) {
+      return res.status(404).json({
         status: false,
-        message: "Customer not found or customer is inactive",
+        message: "Sales inquiry not found",
+      });
+    }
+
+    if (user.role !== "user" && inquiry.customer_id !== user.id) {
+      return res.status(403).json({
+        status: false,
+        message: "You are not authorized to delete this sales inquiry",
       });
     }
 
@@ -297,16 +311,21 @@ module.exports.deleteSalesInquiry = asyncHandler(async (req, res) => {
 
     transaction = await sequelize.transaction();
 
-    const userDetails = await findSingleUserService({
-      where: { ID: user.id },
-      transaction,
+    const inquiry = await findSingleSalesInquiryService({
+      where: { ID: id },
     });
 
-    if (!userDetails || userDetails.status == "Inactive") {
-      await transaction.rollback();
-      return res.status(201).json({
+    if (!inquiry) {
+      return res.status(404).json({
         status: false,
-        message: "Customer not found or customer is inactive",
+        message: "Sales inquiry not found",
+      });
+    }
+
+    if (user.role !== "user" && inquiry.customer_id !== user.id) {
+      return res.status(403).json({
+        status: false,
+        message: "You are not authorized to delete this sales inquiry",
       });
     }
 

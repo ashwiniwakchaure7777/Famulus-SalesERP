@@ -5,7 +5,9 @@ module.exports.createCustomerService = async (payload) => {
     const customer = await CUSTOMER_MODEL.create(payload);
     return customer ? customer.toJSON() : null;
   } catch (error) {
-    throw new Error("Error while creating customer");
+    console.error("Error while creating customer:", error.message);
+    console.error("Payload:", payload);
+    throw new Error(`Error while creating customer: ${error.message}`);
   }
 };
 
@@ -13,6 +15,15 @@ module.exports.findSingleCustomerService = async (query) => {
   try {
     const customer = await CUSTOMER_MODEL.findOne(query);
     return customer ? customer.toJSON() : null;
+  } catch (error) {
+    throw new Error("Error while getting a customer");
+  }
+};
+
+module.exports.findSingleCustomerWithPasswordService = async (query) => {
+  try {
+    const customer = await CUSTOMER_MODEL.findOne(query);
+    return customer;
   } catch (error) {
     throw new Error("Error while getting a customer");
   }

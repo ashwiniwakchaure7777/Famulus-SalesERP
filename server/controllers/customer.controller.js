@@ -1,6 +1,7 @@
 const {
   createCustomerService,
   findSingleCustomerService,
+  findSingleCustomerWithPasswordService,
   findAllWithCountCustomerService,
   updateCustomerService,
   deleteCustomerService,
@@ -9,10 +10,11 @@ const { generateUserToken } = require("../utils/generateToken");
 const ERROR_RESPONSE = require("../utils/handleError");
 const { Op } = require("sequelize");
 const { getPagination } = require("../utils/pagination");
+const { generateCustomerCode } = require("../utils/customerCodeGenerator");
 
 module.exports.registerCustomer = async (req, res) => {
   try {
-    const customerPayload = req.body;
+    const { confirmPassword, ...customerPayload } = req.body;
 
     const isExists = await findSingleCustomerService({
       where: { email: customerPayload.email },
@@ -23,6 +25,12 @@ module.exports.registerCustomer = async (req, res) => {
         status: false,
         message: "Email alredy registered. Please register with another email",
       });
+    }
+
+    // Generate customer_code if not provided
+    if (!customerPayload.customer_code) {
+      customerPayload.customer_code = await generateCustomerCode();
+      console.log("Generated customer_code:", customerPayload.customer_code);
     }
 
     const customer = await createCustomerService(customerPayload);
@@ -47,18 +55,19 @@ module.exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const isExists = await findSingleCustomerService({
+    const customer = await findSingleCustomerWithPasswordService({
       where: { email },
     });
 
-    if (!isExists) {
+    if (!customer) {
       return res.status(409).json({
         status: false,
         message: "Customer not found. Please register first",
       });
     }
 
-    const isPasswordMatch = await isExists.comparePassword(password);
+    // Compare password using the model's comparePassword method
+    const isPasswordMatch = await customer.comparePassword(password);
 
     if (!isPasswordMatch) {
       return res.status(401).json({
@@ -66,16 +75,26 @@ module.exports.login = async (req, res) => {
         message: "Please provide correct credentials",
       });
     }
-    const token = generateUserToken({ ...isExists, role: "customer" }, res);
+    const customerData = customer.toJSON();
 
-    res.status(200).json({
-      status: true,
-      message: "Customer login successfully",
-      data: {
-        customer: isExists,
-        token,
-      },
-    });
+    try {
+      const token = generateUserToken({ ...customerData, role: "customer" });
+
+      res.status(200).json({
+        status: true,
+        message: "Customer login successfully",
+        data: {
+          customer: customerData,
+          token,
+        },
+      });
+    } catch (tokenError) {
+      console.error("Token generation error:", tokenError);
+      return res.status(500).json({
+        status: false,
+        message: "Failed to generate authentication token",
+      });
+    }
   } catch (error) {
     ERROR_RESPONSE(res, error);
   }
@@ -170,6 +189,14 @@ module.exports.updateCustomer = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const { user } = req;
+
+    if (user.role !== "user" && id !== user.id) {
+      return res.status(403).json({
+        status: false,
+        message: "You are not authorized to update this customer",
+      });
+    }
 
     const existingCustomer = await findSingleCustomerService({
       where: { ID: id },

@@ -1,13 +1,14 @@
 const {
   createUserService,
   findSingleUserService,
+  findSingleUserWithPasswordService,
 } = require("../services/user.services");
 const { generateUserToken } = require("../utils/generateToken");
 const ERROR_RESPONSE = require("../utils/handleError");
 
 module.exports.createUser = async (req, res) => {
   try {
-    const userPayload = req.body;
+    const { confirmPassword, ...userPayload } = req.body;
 
     const isExists = await findSingleUserService({
       where: { email: userPayload.email },
@@ -42,18 +43,19 @@ module.exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const isExists = await findSingleUserService({
+    const user = await findSingleUserWithPasswordService({
       where: { email },
     });
 
-    if (!isExists) {
+    if (!user) {
       return res.status(409).json({
         status: false,
         message: "User not found. Please register first",
       });
     }
 
-    const isPasswordMatch = await isExists.comparePassword(password);
+    // Compare password using the model's comparePassword method
+    const isPasswordMatch = await user.comparePassword(password);
 
     if (!isPasswordMatch) {
       return res.status(401).json({
@@ -62,13 +64,14 @@ module.exports.login = async (req, res) => {
       });
     }
     
-    const token = generateUserToken({ ...isExists, role: "user" }, res);
+    const userData = user.toJSON();
+    const token = generateUserToken({ ...userData, role: "user" });
 
     res.status(200).json({
       status: true,
       message: "User login successfully",
       data: {
-        user: isExists,
+        user: userData,
         token,
       },
     });

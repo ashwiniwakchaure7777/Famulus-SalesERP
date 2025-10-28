@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { TokenExpiredError } = require("jsonwebtoken");
 const ERROR_RESPONSE = require("../utils/handleError");
-const { isTokenBlacklisted } = require("../utils/handleToken");
 
 module.exports.authentication = async (req, res, next) => {
   try {
@@ -13,25 +12,12 @@ module.exports.authentication = async (req, res, next) => {
       token !== undefined &&
       token !== "undefined"
     ) {
-      // Check if token is blacklisted
-      if (isTokenBlacklisted(token)) {
-        return res.status(200).json({
-          status: false,
-          message: "This token has been revoked. Please log in again.",
-        });
-      }
-
+      
       try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-        if (!decoded.organizationId) {
-          return res.status(400).json({
-            status: false,
-            message: "Missing organizationId in token. Please log in again.",
-          });
-        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
         next();
+
       } catch (error) {
         if (error instanceof TokenExpiredError) {
           res.status(200).json({

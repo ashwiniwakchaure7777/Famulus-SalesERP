@@ -1,7 +1,8 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 const moment = require("moment");
 const bcrypt = require("bcryptjs");
+const { generateCustomerCode } = require("../utils/customerCodeGenerator");
 
 const CUSTOMER_MODEL = sequelize.define(
   "Customer",
@@ -74,33 +75,21 @@ const CUSTOMER_MODEL = sequelize.define(
     paranoid: true,
     hooks: {
       beforeCreate: async (customer) => {
-        if (!customer.customer_code) {
-          const year = moment().year();
-          const lastCustomer = await CUSTOMER_MODEL.findOne({
-            where: {
-              customer_code: {
-                [sequelize.Sequelize.Op.like]: `CUST-${year}-%`,
-              },
-            },
-            order: [["customer_code", "DESC"]],
-          });
-
-          let nextNumber = 1;
-          if (lastCustomer) {
-            const lastNumber = parseInt(
-              lastCustomer.customer_code.split("-")[2]
-            );
-            nextNumber = lastNumber + 1;
+        try {
+          // Generate customer_code if not provided
+          if (!customer.customer_code) {
+            customer.customer_code = await generateCustomerCode();
+            console.log("Hook generated customer_code:", customer.customer_code);
           }
 
-          customer.customer_code = `CUST-${year}-${nextNumber
-            .toString()
-            .padStart(4, "0")}`;
-        }
-
-        if (customer.password) {
-          const salt = await bcrypt.genSalt(12);
-          customer.password = await bcrypt.hash(customer.password, salt);
+          // Hash password if provided
+          if (customer.password) {
+            const salt = await bcrypt.genSalt(12);
+            customer.password = await bcrypt.hash(customer.password, salt);
+          }
+        } catch (error) {
+          console.error("Error in beforeCreate hook:", error);
+          throw error;
         }
       },
       beforeUpdate: async (customer) => {

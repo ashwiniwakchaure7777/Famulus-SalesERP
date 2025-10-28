@@ -1,5 +1,12 @@
+const { logger } = require("../middlewares/error.middleware");
+
 const ERROR_RESPONSE = (res, error) => {
-  console.error("Error:", error);
+  // Log error with logger
+  logger.error("Error occurred:", {
+    message: error.message,
+    stack: error.stack,
+    ...error,
+  });
 
   // If error is a validation error (optional, for Mongoose/other validation)
   if (error.name === "ValidationError") {

@@ -84,7 +84,7 @@ A comprehensive Node.js backend API for managing customers and sales inquiries w
    DB_PASSWORD=your_password
 
    # JWT Configuration
-   JWT_SECRET=your_super_secret_jwt_key_here
+   JWT_SECRET_KEY=your_super_secret_jwt_key_here
    JWT_EXPIRES_IN=24h
 
    # Server Configuration
@@ -307,7 +307,7 @@ DB_PORT=5432
 DB_NAME=erp_customer_sales_prod
 DB_USER=your_production_db_user
 DB_PASSWORD=your_production_db_password
-JWT_SECRET=your_production_jwt_secret
+JWT_SECRET_KEY=your_production_JWT_SECRET_KEY
 PORT=3000
 ```
 

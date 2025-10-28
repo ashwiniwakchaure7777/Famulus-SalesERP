@@ -18,6 +18,15 @@ module.exports.findSingleUserService = async (query, options = {}) => {
   }
 };
 
+module.exports.findSingleUserWithPasswordService = async (query) => {
+  try {
+    const user = await USER_MODEL.findOne(query);
+    return user;
+  } catch (error) {
+    throw new Error("Error while getting a user");
+  }
+};
+
 module.exports.findAllUserService = async (query) => {
   try {
     const users = await USER_MODEL.findAll(query);
