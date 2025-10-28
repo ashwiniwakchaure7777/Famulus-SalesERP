@@ -6,9 +6,9 @@ async function generateCustomerCode(options = {}) {
     try {
         const { year = moment().year(), prefix = "CUST" } = options;
 
-        // Query directly using sequelize to find the last customer with matching code
+        // Query to find the last customer with matching code (including soft-deleted)
         const [results] = await sequelize.query(
-            `SELECT customer_code FROM customers WHERE customer_code LIKE '${prefix}-${year}-%' AND "deletedAt" IS NULL ORDER BY customer_code DESC LIMIT 1`,
+            `SELECT customer_code FROM customers WHERE customer_code LIKE '${prefix}-${year}-%' ORDER BY customer_code DESC LIMIT 1`,
             { type: sequelize.QueryTypes.SELECT }
         );
 
@@ -23,6 +23,18 @@ async function generateCustomerCode(options = {}) {
 
         // Generate the new customer code
         const customerCode = `${prefix}-${year}-${nextNumber.toString().padStart(4, "0")}`;
+
+        // Double-check if this code already exists (in case of race condition)
+        const [existing] = await sequelize.query(
+            `SELECT customer_code FROM customers WHERE customer_code = '${customerCode}' LIMIT 1`,
+            { type: sequelize.QueryTypes.SELECT }
+        );
+
+        if (existing && existing.customer_code) {
+            // Code exists, increment and try again
+            nextNumber++;
+            return `${prefix}-${year}-${nextNumber.toString().padStart(4, "0")}`;
+        }
 
         return customerCode;
     } catch (error) {

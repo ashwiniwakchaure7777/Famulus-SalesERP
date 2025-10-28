@@ -21,6 +21,20 @@ module.exports.createUser = async (req, res) => {
       });
     }
 
+    // Convert empty strings to null for optional fields to avoid Sequelize validation errors
+    if (userPayload.phone_number === '') {
+      userPayload.phone_number = null;
+    }
+    if (userPayload.profile_picture === '') {
+      userPayload.profile_picture = null;
+    }
+    if (userPayload.department === '') {
+      userPayload.department = null;
+    }
+    if (userPayload.employee_id === '') {
+      userPayload.employee_id = null;
+    }
+
     const user = await createUserService(userPayload);
 
     if (!user) {

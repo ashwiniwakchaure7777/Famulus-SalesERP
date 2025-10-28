@@ -67,6 +67,8 @@ module.exports.createSalesInquiry = asyncHandler(async (req, res) => {
     line_items = line_items.map((item) => ({
       ...item,
       sales_inquiry_id: inquiry.ID,
+      quantity: parseInt(item.quantity, 10) || 0,
+      expected_unit_price: parseFloat(item.expected_unit_price) || 0,
     }));
 
     const lineItems = await createBulkSalesInquiryItemsService(line_items, {
@@ -89,8 +91,15 @@ module.exports.createSalesInquiry = asyncHandler(async (req, res) => {
       data: inquiry,
     });
   } catch (error) {
-    if (!transaction.finished) {
-      await transaction.rollback();
+    console.error("Sales inquiry creation error:", error.message);
+    console.error("Error stack:", error.stack);
+    if (transaction && !transaction.finished) {
+      try {
+        await transaction.rollback();
+        console.log("Transaction rolled back successfully");
+      } catch (rollbackError) {
+        console.error("Error during transaction rollback:", rollbackError);
+      }
     }
     ERROR_RESPONSE(res, error);
   }

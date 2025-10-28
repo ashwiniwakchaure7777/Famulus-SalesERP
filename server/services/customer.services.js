@@ -6,6 +6,7 @@ module.exports.createCustomerService = async (payload) => {
     return customer ? customer.toJSON() : null;
   } catch (error) {
     console.error("Error while creating customer:", error.message);
+    console.error("Error details:", error);
     console.error("Payload:", payload);
     throw new Error(`Error while creating customer: ${error.message}`);
   }

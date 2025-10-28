@@ -33,6 +33,14 @@ module.exports.registerCustomer = async (req, res) => {
       console.log("Generated customer_code:", customerPayload.customer_code);
     }
 
+    // Convert empty strings to null for optional fields to avoid Sequelize validation errors
+    if (customerPayload.gst_number === '') {
+      customerPayload.gst_number = null;
+    }
+    if (customerPayload.address_street === '') {
+      customerPayload.address_street = null;
+    }
+
     const customer = await createCustomerService(customerPayload);
 
     if (!customer) {
@@ -47,6 +55,8 @@ module.exports.registerCustomer = async (req, res) => {
       message: `Customer ${customerPayload.customer_name} is created successfully`,
     });
   } catch (error) {
+    console.error("Registration error:", error.message);
+    console.error("Error stack:", error.stack);
     ERROR_RESPONSE(res, error);
   }
 };
