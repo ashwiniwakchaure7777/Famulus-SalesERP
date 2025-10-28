@@ -1,0 +1,655 @@
+{
+	"info": {
+		"_postman_id": "7415a2dd-3043-4df1-80da-9c8b35564141",
+		"name": "Famulus Sales ERP API",
+		"description": "Complete API collection for Customer and Sales Inquiry Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25125014"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('authToken', jsonData.data.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"Password123@\",\n    \"confirmPassword\": \"Password123@\",\n    \"phone_number\": \"+1234567890\",\n    \"role\": \"Admin\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('authToken', jsonData.data.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123@\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Customers",
+			"item": [
+				{
+					"name": "Register Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set('authToken', jsonData.data.token);",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_name\": \"ABC Enterprises\",\n  \"email\": \"abc@gmail.com\",\n  \"phone_number\": \"+1234567890\",\n  \"business_type\": \"Wholesaler\",\n  \"password\": \"123456789\",\n  \"confirmPassword\":\"123456789\",\n  \"credit_limit\": 100000,\n  \"address_street\": \"123 Main Street\",\n  \"address_city\": \"New York\",\n  \"address_state\": \"NY\",\n  \"address_pincode\": \"100021\",\n  \"gst_number\": \"29ABCDE1234F1Z5\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8056/api/v1/customers/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8056",
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('authToken', jsonData.data.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"abc@gmail.com\",\n  \"password\": \"123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Customers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwibmFtZSI6IkpvaG4iLCJyb2xlIjoidXNlciIsImlhdCI6MTc2MTYxOTMxMywiZXhwIjoxNzYxNzA1NzEzfQ.RgWDNm72ImdU1ekNGcj64yJYpMob-mCIXmbCQ1AS9x0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers?page=1&limit=10&search=&business_type=&status=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "business_type",
+									"value": ""
+								},
+								{
+									"key": "status",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwibmFtZSI6IkpvaG4iLCJyb2xlIjoidXNlciIsImlhdCI6MTc2MTYxOTMxMywiZXhwIjoxNzYxNzA1NzEzfQ.RgWDNm72ImdU1ekNGcj64yJYpMob-mCIXmbCQ1AS9x0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Customer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJuYW1lIjoiQUJDIEVudGVycHJpc2VzIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzYxNjE5ODgzLCJleHAiOjE3NjE3MDYyODN9.a-uTq9vGZzQD3T-dborbizo5iq50fd528FkuLxOHFw4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_name\": \"ABC Enterprises Ltd\",\n  \"phone_number\": \"+1234567890\",\n  \"business_type\": \"Wholesaler\",\n  \"credit_limit\": 150000,\n  \"address_street\": \"123 Main Street, Suite 100\",\n  \"address_city\": \"New York\",\n  \"address_state\": \"NY\",\n  \"address_pincode\": \"100201\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Customer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sales Inquiries",
+			"item": [
+				{
+					"name": "Create Sales Inquiry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJuYW1lIjoiQUJDIEVudGVycHJpc2VzIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzYxNjE5ODgzLCJleHAiOjE3NjE3MDYyODN9.a-uTq9vGZzQD3T-dborbizo5iq50fd528FkuLxOHFw4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"inquiry_date\": \"2025-10-27\",\n  \"expected_delivery_date\": \"2025-12-27\",\n  \"priority\": \"High\",\n  \"remarks\": \"Urgent order for Q4 2025\",\n  \"line_items\": [\n    {\n      \"product_name\": \"Product A\",\n      \"description\": \"High quality product\",\n      \"quantity\": 100,\n      \"unit\": \"Pcs\",\n      \"expected_unit_price\": 50.00\n    },\n    {\n      \"product_name\": \"Product B\",\n      \"description\": \"Premium quality product\",\n      \"quantity\": 50,\n      \"unit\": \"Kg\",\n      \"expected_unit_price\": 75.00\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales-inquiries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Sales Inquiries",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJuYW1lIjoiQUJDIEVudGVycHJpc2VzIEx0ZCIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc2MTYyMzE4MCwiZXhwIjoxNzYxNzA5NTgwfQ.bUK7HjG8Ucg8kqWQ1FuFcsiIwdVb657LLIkX43ngCmw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries?page=1&limit=10&search=&status=&priority=&customer_id=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales-inquiries"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "status",
+									"value": ""
+								},
+								{
+									"key": "priority",
+									"value": ""
+								},
+								{
+									"key": "customer_id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sales Inquiry by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJuYW1lIjoiQUJDIEVudGVycHJpc2VzIEx0ZCIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc2MTYyMzE4MCwiZXhwIjoxNzYxNzA5NTgwfQ.bUK7HjG8Ucg8kqWQ1FuFcsiIwdVb657LLIkX43ngCmw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales-inquiries",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Sales Inquiry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJuYW1lIjoiQUJDIEVudGVycHJpc2VzIEx0ZCIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc2MTYyMzE4MCwiZXhwIjoxNzYxNzA5NTgwfQ.bUK7HjG8Ucg8kqWQ1FuFcsiIwdVb657LLIkX43ngCmw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": 1,\n  \"inquiry_date\": \"2025-10-27\",\n  \"expected_delivery_date\": \"2025-12-30\",\n  \"status\": \"Submitted\",\n  \"priority\": \"Medium\",\n  \"remarks\": \"Updated order requirements\",\n  \"line_items\": [\n    {\n      \"product_name\": \"Product A\",\n      \"description\": \"High quality product - Updated\",\n      \"quantity\": 150,\n      \"unit\": \"Pcs\",\n      \"expected_unit_price\": 55.00\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales-inquiries",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Sales Inquiry Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJlbWFpbCI6ImFiY0BnbWFpbC5jb20iLCJuYW1lIjoiQUJDIEVudGVycHJpc2VzIEx0ZCIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc2MTYyMjQ2NCwiZXhwIjoxNzYxNzA4ODY0fQ.h1TGZ-aVSAo4Y7bkvwfzm8G2mfArhVikQpCol7as10A",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Quoted\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/1/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales-inquiries",
+								"1",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Sales Inquiry",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sales-inquiries/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales-inquiries",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8056",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { inquiryAPI, customerAPI } from '../../utils/api';
+import { inquiryAPI } from '../../utils/api';
 import { validateInquiry } from '../../utils/validation';
-import { INQUIRY_STATUS, PRIORITY_LEVELS, UNITS } from '../../utils/constants';
+import { PRIORITY_LEVELS, UNITS } from '../../utils/constants';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Select from '../common/Select';
 import LoadingSpinner from '../common/LoadingSpinner';
+import Badge from '../common/Badge';
 
 const InquiryForm = () => {
   const navigate = useNavigate();
@@ -17,49 +18,67 @@ const InquiryForm = () => {
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [customers, setCustomers] = useState([]);
+  const [savingAsDraft, setSavingAsDraft] = useState(false);
   const [errors, setErrors] = useState({});
+  const [currentStatus, setCurrentStatus] = useState('Draft');
+  const [inquiryDetails, setInquiryDetails] = useState(null);
 
   const [formData, setFormData] = useState({
-    inquiryNumber: '',
-    customer: '',
     inquiryDate: new Date().toISOString().split('T')[0],
     expectedDeliveryDate: '',
-    status: 'draft',
-    priority: 'medium',
+    priority: 'Medium',
     remarks: '',
     lineItems: [{ productName: '', description: '', quantity: '', unit: '', expectedUnitPrice: '' }],
   });
 
   useEffect(() => {
-    fetchCustomers();
     if (isEdit) {
       fetchInquiry();
     }
   }, [id]);
 
-  const fetchCustomers = async () => {
-    try {
-      const response = await customerAPI.getAll({ status: 'active', limit: 1000 });
-      setCustomers(response.data.customers || response.data || []);
-    } catch (error) {
-      toast.error('Failed to fetch customers');
+  useEffect(() => {
+    if (currentStatus && ['Submitted', 'Won', 'Lost'].includes(currentStatus)) {
+      // Show message that status cannot be changed
+      if (currentStatus === 'Submitted') {
+        toast('This inquiry has been submitted.', { 
+          icon: 'ℹ️',
+          duration: 5000 
+        });
+      }
     }
-  };
+  }, [currentStatus]);
 
   const fetchInquiry = async () => {
     try {
       setLoading(true);
       const response = await inquiryAPI.getById(id);
-      const data = response.data;
+      // API response structure: { status: true, data: inquiry }
+      const data = response.data?.data || response.data;
+      
+      if (!data) {
+        toast.error('Inquiry data not found');
+        navigate('/inquiries');
+        return;
+      }
+      
+      setInquiryDetails(data); // Store inquiry details
       setFormData({
-        ...data,
-        customer: data.customer?._id || data.customer || '',
-        inquiryDate: data.inquiryDate ? data.inquiryDate.split('T')[0] : '',
-        expectedDeliveryDate: data.expectedDeliveryDate ? data.expectedDeliveryDate.split('T')[0] : '',
-        lineItems: data.lineItems?.length > 0 ? data.lineItems : [{ productName: '', description: '', quantity: '', unit: '', expectedUnitPrice: '' }],
+        inquiryDate: data.inquiry_date ? data.inquiry_date.split('T')[0] : '',
+        expectedDeliveryDate: data.expected_delivery_date ? data.expected_delivery_date.split('T')[0] : '',
+        priority: data.priority || 'Medium',
+        remarks: data.remarks || '',
+        lineItems: data.lineItems?.length > 0 ? data.lineItems.map(item => ({
+          productName: item.product_name || '',
+          description: item.description || '',
+          quantity: item.quantity || '',
+          unit: item.unit || '',
+          expectedUnitPrice: item.expected_unit_price || '',
+        })) : [{ productName: '', description: '', quantity: '', unit: '', expectedUnitPrice: '' }],
       });
+      setCurrentStatus(data.status || 'Draft');
     } catch (error) {
+      console.error('Error fetching inquiry:', error);
       toast.error('Failed to fetch inquiry');
       navigate('/inquiries');
     } finally {
@@ -108,34 +127,41 @@ const InquiryForm = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Filter out empty line items
-    const filteredLineItems = formData.lineItems.filter(item => item.productName.trim());
-    
-    const validationErrors = validateInquiry({ ...formData, lineItems: filteredLineItems });
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      toast.error('Please fix the errors in the form');
-      return;
-    }
-
+  const saveInquiry = async (newStatus) => {
     try {
       setSubmitting(true);
       const submitData = {
-        ...formData,
-        lineItems: filteredLineItems,
-        totalItemsCount: filteredLineItems.length,
+        inquiry_date: formData.inquiryDate,
+        expected_delivery_date: formData.expectedDeliveryDate,
+        priority: formData.priority,
+        remarks: formData.remarks,
+        line_items: formData.lineItems.filter(item => item.productName.trim()).map(item => ({
+          product_name: item.productName,
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+          expected_unit_price: item.expectedUnitPrice,
+        })),
       };
+      
+      // Only update status if it's a draft or quoted (customers can't change submitted/won/lost status)
+      if (isEdit && (currentStatus === 'Draft' || currentStatus === 'Quoted')) {
+        submitData.status = newStatus;
+      } else if (!isEdit) {
+        // New inquiry can set status
+        submitData.status = newStatus;
+      }
+      // For submitted/won/lost inquiries, don't update status (preserve existing status)
       
       if (isEdit) {
         await inquiryAPI.update(id, submitData);
-        toast.success('Inquiry updated successfully');
+        const message = newStatus === 'Submitted' && currentStatus !== 'Submitted' 
+          ? 'Inquiry submitted successfully' 
+          : 'Inquiry updated successfully';
+        toast.success(message);
       } else {
         await inquiryAPI.create(submitData);
-        toast.success('Inquiry created successfully');
+        toast.success(newStatus === 'Submitted' ? 'Inquiry submitted successfully' : 'Inquiry saved as draft');
       }
       navigate('/inquiries');
     } catch (error) {
@@ -145,10 +171,36 @@ const InquiryForm = () => {
     }
   };
 
-  const customerOptions = customers.map((cust) => ({
-    value: cust._id,
-    label: `${cust.customerName} (${cust.customerCode})`,
-  }));
+  const handleSaveDraft = async (e) => {
+    e.preventDefault();
+    
+    // Save as draft without validation
+    await saveInquiry('Draft');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Filter out empty line items
+    const filteredLineItems = formData.lineItems.filter(item => item.productName.trim());
+    
+    // Only validate if this is a new submission (not updating an existing submitted inquiry)
+    if (currentStatus !== 'Submitted' && currentStatus !== 'Won' && currentStatus !== 'Lost') {
+      const validationErrors = validateInquiry({ ...formData, lineItems: filteredLineItems });
+      setErrors(validationErrors);
+
+      if (Object.keys(validationErrors).length > 0) {
+        toast.error('Please fix the errors in the form');
+        return;
+      }
+
+      // Submit with Submitted status (only for draft/quoted)
+      await saveInquiry('Submitted');
+    } else {
+      // For submitted/won/lost inquiries, just update without changing status
+      await saveInquiry(currentStatus);
+    }
+  };
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -164,25 +216,27 @@ const InquiryForm = () => {
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <Input
-            label="Inquiry Number"
-            name="inquiryNumber"
-            value={formData.inquiryNumber}
-            disabled
-            error={errors.inquiryNumber}
-            placeholder="Auto-generated"
-          />
-
-          <Select
-            label="Customer"
-            name="customer"
-            value={formData.customer}
-            onChange={handleChange}
-            options={customerOptions}
-            required
-            error={errors.customer}
-          />
-
+          {/* Inquiry details - read-only fields shown in edit mode */}
+          {isEdit && inquiryDetails && (
+            <>
+              <Input
+                label="Inquiry Number"
+                name="inquiryNumber"
+                type="text"
+                value={inquiryDetails.inquiry_number || 'N/A'}
+                readOnly
+              />
+              <Input
+                label="Status"
+                name="status"
+                type="text"
+                value={inquiryDetails.status || 'Draft'}
+                readOnly
+                className="bg-gray-100"
+              />
+              
+            </>
+          )}
           <Input
             label="Inquiry Date"
             name="inquiryDate"
@@ -191,6 +245,7 @@ const InquiryForm = () => {
             onChange={handleChange}
             required
             error={errors.inquiryDate}
+            min={new Date().toISOString().split('T')[0]}
           />
 
           <Input
@@ -201,16 +256,7 @@ const InquiryForm = () => {
             onChange={handleChange}
             required
             error={errors.expectedDeliveryDate}
-          />
-
-          <Select
-            label="Status"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            options={INQUIRY_STATUS}
-            error={errors.status}
-            fullWidth={false}
+            min={formData.inquiryDate || new Date().toISOString().split('T')[0]}
           />
 
           <Select
@@ -327,17 +373,46 @@ const InquiryForm = () => {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate('/inquiries')}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? 'Saving...' : isEdit ? 'Update' : 'Create'}
-          </Button>
+        <div className="flex justify-between mt-6">
+          <div>
+            {currentStatus && (
+              <span className="text-sm text-gray-600">
+                Status: <span className="font-semibold">{currentStatus}</span>
+              </span>
+            )}
+          </div>
+          <div className="flex justify-end space-x-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate('/inquiries')}
+            >
+              Cancel
+            </Button>
+            {/* Show Save as Draft button only for Draft and Quoted statuses */}
+            {(currentStatus === 'Draft' || currentStatus === 'Quoted' || !currentStatus) && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveDraft}
+                disabled={submitting}
+              >
+                {submitting ? 'Saving...' : 'Save as Draft'}
+              </Button>
+            )}
+            {/* Submit button - for Draft/Quoted submits, for Submitted shows as Update */}
+            {currentStatus !== 'Won' && currentStatus !== 'Lost' && (
+              <Button type="submit" disabled={submitting} onClick={handleSubmit}>
+                {submitting 
+                  ? 'Saving...' 
+                  : currentStatus === 'Submitted' 
+                    ? 'Update' 
+                    : currentStatus === 'Draft' || currentStatus === 'Quoted'
+                      ? 'Submit'
+                      : 'Submit'}
+              </Button>
+            )}
+          </div>
         </div>
       </form>
     </div>

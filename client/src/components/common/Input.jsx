@@ -10,6 +10,7 @@ const Input = ({
   required = false,
   placeholder,
   disabled = false,
+  readOnly = false,
   className = '',
   fullWidth = true,
   ...props
@@ -35,11 +36,12 @@ const Input = ({
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+        readOnly={readOnly}
+        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
           error
             ? 'border-red-500 focus:border-red-500'
             : 'border-gray-300 focus:border-blue-500'
-        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'} ${className}`}
+        } ${disabled || readOnly ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'} ${className}`}
         {...props}
       />
       {error && (

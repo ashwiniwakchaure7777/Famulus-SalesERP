@@ -18,17 +18,23 @@ export const INQUIRY_STATUS = [
 ];
 
 export const PRIORITY_LEVELS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
+  { value: 'Low', label: 'Low' },
+  { value: 'Medium', label: 'Medium' },
+  { value: 'High', label: 'High' },
 ];
 
 export const UNITS = [
-  { value: 'pcs', label: 'Pcs (Pieces)' },
-  { value: 'kg', label: 'Kg (Kilogram)' },
-  { value: 'ltr', label: 'Ltr (Liter)' },
-  { value: 'mtr', label: 'Mtr (Meter)' },
+  { value: 'Pcs', label: 'Pcs (Pieces)' },
+  { value: 'Kg', label: 'Kg (Kilogram)' },
+  { value: 'Ltr', label: 'Ltr (Liter)' },
+  { value: 'Mtr', label: 'Mtr (Meter)' },
 ];
+
+// Helper function to capitalize first letter
+export const capitalizeFirst = (str) => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
 
 export const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-800',
@@ -38,6 +44,10 @@ export const STATUS_COLORS = {
   lost: 'bg-red-100 text-red-800',
   active: 'bg-green-100 text-green-800',
   inactive: 'bg-red-100 text-red-800',
+  // Priority levels (capitalized)
+  Low: 'bg-gray-100 text-gray-800',
+  Medium: 'bg-yellow-100 text-yellow-800',
+  High: 'bg-red-100 text-red-800',
 };
 
 export const STATUS_BADGE_STYLE = {

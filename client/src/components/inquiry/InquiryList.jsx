@@ -3,17 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { inquiryAPI } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Select from '../common/Select';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Badge from '../common/Badge';
 import DeleteConfirm from '../common/DeleteConfirm';
-import { INQUIRY_STATUS, PRIORITY_LEVELS } from '../../utils/constants';
+import { INQUIRY_STATUS, PRIORITY_LEVELS, capitalizeFirst } from '../../utils/constants';
 import { formatDateDisplay } from '../../utils/validation';
 
 const InquiryList = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [inquiries, setInquiries] = useState([]);
   const [statusCounts, setStatusCounts] = useState({});
   const [loading, setLoading] = useState(true);
@@ -38,16 +40,25 @@ const InquiryList = () => {
       const params = {
         page: currentPage,
         limit: pageSize,
-        status: filterStatus,
+        status: filterStatus ? capitalizeFirst(filterStatus) : filterStatus,
         priority: filterPriority,
-        dateFrom,
-        dateTo,
+        ...(dateFrom && { date_from: dateFrom }),
+        ...(dateTo && { date_to: dateTo }),
       };
       const response = await inquiryAPI.getAll(params);
-      setInquiries(response.data.inquiries || response.data);
-      setTotalPages(Math.ceil((response.data.total || response.data.length) / pageSize));
+      // Handle response structure properly
+      const inquiriesData = response.data?.data || response.data || [];
+      setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
+      // Use pagination from response if available, otherwise fall back to total count
+      if (response.data?.pagination?.totalPages) {
+        setTotalPages(response.data.pagination.totalPages);
+      } else {
+        const totalCount = response.data?.pagination?.totalDocuments || response.data?.count || 0;
+        setTotalPages(Math.ceil(totalCount / pageSize));
+      }
     } catch (error) {
       toast.error('Failed to fetch inquiries');
+      setInquiries([]);
     } finally {
       setLoading(false);
     }
@@ -56,7 +67,7 @@ const InquiryList = () => {
   const fetchStatusCounts = async () => {
     try {
       const response = await inquiryAPI.getByStatus();
-      setStatusCounts(response.data || {});
+      setStatusCounts(response.data?.data || {});
     } catch (error) {
       console.error('Failed to fetch status counts');
     }
@@ -65,12 +76,14 @@ const InquiryList = () => {
   const handleDelete = async () => {
     try {
       const inquiry = deleteConfirm.inquiry;
-      if (inquiry.status === 'won' || inquiry.status === 'lost') {
-        toast.error('Cannot delete inquiry with Won or Lost status');
+      const status = inquiry.status?.toLowerCase();
+      // Allow deletion of draft and submitted inquiries
+      if (status && status !== 'draft' && status !== 'submitted') {
+        toast.error('Only Draft and Submitted inquiries can be deleted');
         setDeleteConfirm({ open: false, inquiry: null });
         return;
       }
-      await inquiryAPI.delete(inquiry._id);
+      await inquiryAPI.delete(inquiry.ID);
       toast.success('Inquiry deleted successfully');
       setDeleteConfirm({ open: false, inquiry: null });
       fetchInquiries();
@@ -82,7 +95,9 @@ const InquiryList = () => {
 
   const handleStatusChange = async (inquiryId, newStatus) => {
     try {
-      await inquiryAPI.updateStatus(inquiryId, newStatus);
+      // Capitalize the first letter to match backend expectations
+      const capitalizedStatus = capitalizeFirst(newStatus);
+      await inquiryAPI.updateStatus(inquiryId, capitalizedStatus);
       toast.success('Status updated successfully');
       fetchInquiries();
       fetchStatusCounts();
@@ -103,10 +118,12 @@ const InquiryList = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Sales Inquiries</h1>
-        <Button onClick={() => navigate('/inquiries/new')}>
-          <Plus className="mr-2" size={20} />
-          New Inquiry
-        </Button>
+        {!isAdmin() && (
+          <Button onClick={() => navigate('/inquiries/new')}>
+            <Plus className="mr-2" size={20} />
+            New Inquiry
+          </Button>
+        )}
       </div>
 
       {/* Dashboard Cards */}
@@ -236,23 +253,23 @@ const InquiryList = () => {
                 </tr>
               ) : (
                 inquiries.map((inquiry) => (
-                  <tr key={inquiry._id} className="hover:bg-gray-50">
+                  <tr key={inquiry.ID} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {inquiry.inquiryNumber}
+                      {inquiry.inquiry_number || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {inquiry.customer?.customerName || '-'}
+                      {inquiry.customer?.customer_name || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDateDisplay(inquiry.inquiryDate)}
+                      {formatDateDisplay(inquiry.inquiry_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDateDisplay(inquiry.expectedDeliveryDate)}
+                      {formatDateDisplay(inquiry.expected_delivery_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select
-                        value={inquiry.status}
-                        onChange={(e) => handleStatusChange(inquiry._id, e.target.value)}
+                        value={inquiry.status?.toLowerCase() || ''}
+                        onChange={(e) => handleStatusChange(inquiry.ID, e.target.value)}
                         className={`border-none bg-transparent ${Badge} focus:outline-none cursor-pointer`}
                       >
                         {INQUIRY_STATUS.map((status) => (
@@ -266,30 +283,32 @@ const InquiryList = () => {
                       <Badge status={inquiry.priority}>{inquiry.priority}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {inquiry.totalItemsCount || 0}
+                      {inquiry.lineItemsCount || inquiry.total_items_count || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button
-                          onClick={() => navigate(`/inquiries/${inquiry._id}`)}
+                          onClick={() => navigate(`/inquiries/${inquiry.ID}`)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           <Eye size={18} />
                         </button>
-                        {inquiry.status !== 'won' && inquiry.status !== 'lost' && (
+                        {(inquiry.status?.toLowerCase() === 'draft' || inquiry.status?.toLowerCase() === 'quoted' || inquiry.status?.toLowerCase() === 'submitted') && (
                           <>
                             <button
-                              onClick={() => navigate(`/inquiries/${inquiry._id}/edit`)}
+                              onClick={() => navigate(`/inquiries/${inquiry.ID}/edit`)}
                               className="text-green-600 hover:text-green-900"
                             >
                               <Edit size={18} />
                             </button>
-                            <button
-                              onClick={() => setDeleteConfirm({ open: true, inquiry })}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            {(inquiry.status?.toLowerCase() === 'draft' || inquiry.status?.toLowerCase() === 'submitted') && (
+                              <button
+                                onClick={() => setDeleteConfirm({ open: true, inquiry })}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            )}
                           </>
                         )}
                       </div>
@@ -378,7 +397,7 @@ const InquiryList = () => {
         onClose={() => setDeleteConfirm({ open: false, inquiry: null })}
         onConfirm={handleDelete}
         title="Delete Inquiry"
-        message={`Are you sure you want to delete inquiry "${deleteConfirm.inquiry?.inquiryNumber}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete inquiry "${deleteConfirm.inquiry?.inquiry_number}"? This action cannot be undone.`}
       />
     </div>
   );

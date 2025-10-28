@@ -63,18 +63,19 @@ export const validateCustomer = (data) => {
 
 export const validateInquiry = (data) => {
   const errors = {};
-
-  if (!data.customer) {
-    errors.customer = 'Customer is required';
-  }
+  const today = new Date().toISOString().split('T')[0];
 
   if (!data.inquiryDate) {
     errors.inquiryDate = 'Inquiry Date is required';
+  } else if (data.inquiryDate < today) {
+    errors.inquiryDate = 'Inquiry date cannot be in the past';
   }
 
   if (!data.expectedDeliveryDate) {
     errors.expectedDeliveryDate = 'Expected Delivery Date is required';
-  } else if (data.expectedDeliveryDate <= data.inquiryDate) {
+  } else if (data.expectedDeliveryDate < today) {
+    errors.expectedDeliveryDate = 'Expected delivery date cannot be in the past';
+  } else if (data.inquiryDate && data.expectedDeliveryDate <= data.inquiryDate) {
     errors.expectedDeliveryDate = 'Expected delivery date must be after inquiry date';
   }
 

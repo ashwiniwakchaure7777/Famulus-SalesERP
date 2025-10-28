@@ -24,6 +24,8 @@ router.get(
   salesInquiryController.getAllSalesInquiries
 );
 
+router.get("/status/counts", salesInquiryController.getStatusCounts);
+
 router.get("/:id", salesInquiryController.getSalesInquiryById);
 
 router.put(

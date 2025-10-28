@@ -12,6 +12,7 @@ const {
   updateLineItemService,
   createLineItemService,
   findAllLineItemService,
+  findWithGroupBy,
 } = require("../services/salesInquiry.services");
 const sequelize = require("../config/sequelizedb");
 const { findSingleUserService } = require("../services/user.services");
@@ -21,6 +22,7 @@ const { getPagination } = require("../utils/pagination");
 const ERROR_RESPONSE = require("../utils/handleError");
 const { generateInquiryNumber } = require("../utils/inquiryNumberGenerator");
 const SALES_INQUIRY_ITEM_MODEL = require("../models/salesInquiryLineItem.model");
+const CUSTOMER_MODEL = require("../models/customer.model");
 
 module.exports.createSalesInquiry = asyncHandler(async (req, res) => {
   const transaction = await sequelize.transaction();
@@ -82,7 +84,7 @@ module.exports.createSalesInquiry = asyncHandler(async (req, res) => {
     await transaction.commit();
 
     res.status(201).json({
-      success: true,
+      status: true,
       message: "Sales inquiry created successfully",
       data: inquiry,
     });
@@ -103,6 +105,8 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
       status,
       priority,
       customer_id,
+      date_from,
+      date_to,
       sort = "DESC",
     } = req.query;
 
@@ -125,6 +129,17 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
       where.priority = priority;
     }
 
+    // Date filtering
+    if (date_from || date_to) {
+      where.inquiry_date = {};
+      if (date_from) {
+        where.inquiry_date[Op.gte] = new Date(date_from);
+      }
+      if (date_to) {
+        where.inquiry_date[Op.lte] = new Date(date_to);
+      }
+    }
+
     if (user.role == "customer") {
       where.customer_id = user.id;
     }
@@ -135,6 +150,19 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
 
     const queryOptions = {
       where,
+      include: [
+        {
+          model: CUSTOMER_MODEL,
+          as: "customer",
+          attributes: ["ID", "customer_name", "customer_code"],
+        },
+        {
+          model: SALES_INQUIRY_ITEM_MODEL,
+          as: "lineItems",
+          attributes: ["ID"],
+          required: false,
+        },
+      ],
       limit: parseInt(limit),
       offset: (parseInt(page) - 1) * parseInt(limit),
       order: [["ID", sort]],
@@ -149,10 +177,19 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
       });
     }
 
+    // Add line items count to each inquiry
+    const inquiriesWithCount = result.rows.map(inquiry => {
+      const inquiryData = inquiry.get ? inquiry.get({ plain: true }) : inquiry;
+      return {
+        ...inquiryData,
+        lineItemsCount: inquiryData.lineItems?.length || 0,
+      };
+    });
+
     res.status(200).json({
       status: true,
       message: "Sales inquiries retrieved successfully",
-      data: result.rows,
+      data: inquiriesWithCount,
       pagination: getPagination(page, limit, result.count),
     });
   } catch (error) {
@@ -343,7 +380,8 @@ module.exports.deleteSalesInquiry = asyncHandler(async (req, res) => {
       });
     }
 
-    if (user.role !== "user" && inquiry.customer_id !== user.id) {
+    // Allow deletion if user is admin OR if inquiry belongs to the user
+    if (user.role === "customer" && inquiry.customer_id !== user.id) {
       return res.status(403).json({
         status: false,
         message: "You are not authorized to delete this sales inquiry",
@@ -400,8 +438,49 @@ module.exports.updateInquiryStatus = asyncHandler(async (req, res) => {
     res.status(201).json({
       status: true,
       message: `Inquiry status to ${status} updated successfully`,
-    })
+    });
   } catch (error) {
-    ERROR_RESPONSE(res, error)
+    ERROR_RESPONSE(res, error);
   }
-})
+});
+
+module.exports.getStatusCounts = asyncHandler(async (req, res) => {
+  try {
+    const { user } = req;
+    const where = {};
+
+    if (user.role == "customer") {
+      where.customer_id = user.id;
+    }
+
+    const result = await findWithGroupBy({
+      where,
+      group: ["status"],
+      attributes: ["status", [sequelize.fn("COUNT", sequelize.col("ID")), "count"]],
+    });
+
+    const counts = {
+      draft: 0,
+      submitted: 0,
+      quoted: 0,
+      won: 0,
+      lost: 0,
+    };
+
+    if (result && result.length > 0) {
+      result.forEach((item) => {
+        if (item.status && counts.hasOwnProperty(item.status.toLowerCase())) {
+          counts[item.status.toLowerCase()] = parseInt(item.count);
+        }
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Status counts retrieved successfully",
+      data: counts,
+    });
+  } catch (error) {
+    ERROR_RESPONSE(res, error);
+  }
+});

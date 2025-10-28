@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerAPI } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Select from '../common/Select';
@@ -14,6 +15,7 @@ import { formatDateDisplay } from '../../utils/validation';
 
 const CustomerList = () => {
   const navigate = useNavigate();
+  const { isAdmin, isCustomer } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,15 +37,24 @@ const CustomerList = () => {
       const params = {
         page: currentPage,
         limit: pageSize,
-        businessType: filterBusinessType,
+        business_type: filterBusinessType,
         status: filterStatus,
         search: searchTerm,
       };
       const response = await customerAPI.getAll(params);
-      setCustomers(response.data.customers || response.data);
-      setTotalPages(Math.ceil((response.data.total || response.data.length) / pageSize));
+      // Handle response structure properly
+      const customersData = response.data?.data || response.data || [];
+      setCustomers(Array.isArray(customersData) ? customersData : []);
+      // Use pagination from response if available, otherwise fall back to total count
+      if (response.data?.pagination?.totalPages) {
+        setTotalPages(response.data.pagination.totalPages);
+      } else {
+        const totalCount = response.data?.pagination?.totalDocuments || response.data?.count || 0;
+        setTotalPages(Math.ceil(totalCount / pageSize));
+      }
     } catch (error) {
       toast.error('Failed to fetch customers');
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
@@ -51,7 +62,7 @@ const CustomerList = () => {
 
   const handleDelete = async () => {
     try {
-      await customerAPI.delete(deleteConfirm.customer._id);
+      await customerAPI.delete(deleteConfirm.customer.ID);
       toast.success('Customer deleted successfully');
       setDeleteConfirm({ open: false, customer: null });
       fetchCustomers();
@@ -72,10 +83,12 @@ const CustomerList = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Customer Master</h1>
-        <Button onClick={() => navigate('/customers/new')}>
-          <Plus className="mr-2" size={20} />
-          Add Customer
-        </Button>
+        {!isAdmin() && (
+          <Button onClick={() => navigate('/customers/new')}>
+            <Plus className="mr-2" size={20} />
+            Add Customer
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -167,38 +180,38 @@ const CustomerList = () => {
                 </tr>
               ) : (
                 customers.map((customer) => (
-                  <tr key={customer._id} className="hover:bg-gray-50">
+                  <tr key={customer.ID} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {customer.customerCode}
+                      {customer.customer_code}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {customer.customerName}
+                      {customer.customer_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {customer.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {customer.phoneNumber}
+                      {customer.phone_number}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {customer.businessType}
+                      {customer.business_type}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge status={customer.status}>{customer.status}</Badge>
+                      <Badge status={customer.status?.toLowerCase()}>{customer.status}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDateDisplay(customer.createdDate)}
+                      {formatDateDisplay(customer.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button
-                          onClick={() => navigate(`/customers/${customer._id}`)}
+                          onClick={() => navigate(`/customers/${customer.ID}`)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           <Eye size={18} />
                         </button>
                         <button
-                          onClick={() => navigate(`/customers/${customer._id}/edit`)}
+                          onClick={() => navigate(`/customers/${customer.ID}/edit`)}
                           className="text-green-600 hover:text-green-900"
                         >
                           <Edit size={18} />
@@ -295,7 +308,7 @@ const CustomerList = () => {
         onClose={() => setDeleteConfirm({ open: false, customer: null })}
         onConfirm={handleDelete}
         title="Delete Customer"
-        message={`Are you sure you want to delete customer "${deleteConfirm.customer?.customerName}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete customer "${deleteConfirm.customer?.customer_name}"? This action cannot be undone.`}
       />
     </div>
   );

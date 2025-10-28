@@ -2,16 +2,16 @@ const Joi = require('joi');
 
 const salesInquiryValidationSchemas = {
   create: Joi.object({
-    customer_id: Joi.number()
-      .integer()
-      .positive()
-      .required()
-      .messages({
-        'number.base': 'Customer ID must be a number',
-        'number.integer': 'Customer ID must be an integer',
-        'number.positive': 'Customer ID must be positive',
-        'any.required': 'Customer ID is required'
-      }),
+    // customer_id: Joi.number()
+    //   .integer()
+    //   .positive()
+    //   .required()
+    //   .messages({
+    //     'number.base': 'Customer ID must be a number',
+    //     'number.integer': 'Customer ID must be an integer',
+    //     'number.positive': 'Customer ID must be positive',
+    //     'any.required': 'Customer ID is required'
+    //   }),
     
     inquiry_date: Joi.date()
       .iso()
@@ -22,12 +22,16 @@ const salesInquiryValidationSchemas = {
     
     expected_delivery_date: Joi.date()
       .iso()
-      .greater('now')
-      .required()
+      .optional()
       .messages({
-        'date.format': 'Expected delivery date must be a valid date in YYYY-MM-DD format',
-        'date.greater': 'Expected delivery date must be a future date',
-        'any.required': 'Expected delivery date is required'
+        'date.format': 'Expected delivery date must be a valid date in YYYY-MM-DD format'
+      }),
+    
+    status: Joi.string()
+      .valid('Draft', 'Submitted', 'Quoted', 'Won', 'Lost')
+      .optional()
+      .messages({
+        'any.only': 'Status must be one of: Draft, Submitted, Quoted, Won, Lost'
       }),
     
     priority: Joi.string()
@@ -347,6 +351,7 @@ const salesInquiryValidationSchemas = {
     date_from: Joi.date()
       .iso()
       .optional()
+      .allow('')
       .messages({
         'date.format': 'Date from must be a valid date in YYYY-MM-DD format'
       }),
@@ -354,6 +359,7 @@ const salesInquiryValidationSchemas = {
     date_to: Joi.date()
       .iso()
       .optional()
+      .allow('')
       .messages({
         'date.format': 'Date to must be a valid date in YYYY-MM-DD format'
       }),

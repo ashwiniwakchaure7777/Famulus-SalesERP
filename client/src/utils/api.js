@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8056';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,10 +9,10 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
+// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -23,17 +23,14 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response) {
-      const { status, data } = error.response;
-      if (status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-      return Promise.reject(data || error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -41,24 +38,22 @@ api.interceptors.response.use(
 
 // Customer API
 export const customerAPI = {
-  getAll: (params) => api.get('/customers', { params }),
-  getById: (id) => api.get(`/customers/${id}`),
-  create: (data) => api.post('/customers', data),
-  update: (id, data) => api.put(`/customers/${id}`, data),
-  delete: (id) => api.delete(`/customers/${id}`),
-  search: (query) => api.get('/customers/search', { params: { q: query } }),
+  getAll: (params) => api.get('/api/v1/customers', { params }),
+  getById: (id) => api.get(`/api/v1/customers/${id}`),
+  create: (data) => api.post('/api/v1/customers/register', data),
+  update: (id, data) => api.put(`/api/v1/customers/${id}`, data),
+  delete: (id) => api.delete(`/api/v1/customers/${id}`),
 };
 
 // Sales Inquiry API
 export const inquiryAPI = {
-  getAll: (params) => api.get('/inquiries', { params }),
-  getById: (id) => api.get(`/inquiries/${id}`),
-  create: (data) => api.post('/inquiries', data),
-  update: (id, data) => api.put(`/inquiries/${id}`, data),
-  delete: (id) => api.delete(`/inquiries/${id}`),
-  updateStatus: (id, status) => api.patch(`/inquiries/${id}/status`, { status }),
-  getByStatus: () => api.get('/inquiries/status/count'),
+  getAll: (params) => api.get('/api/v1/sales-inquiries', { params }),
+  getById: (id) => api.get(`/api/v1/sales-inquiries/${id}`),
+  create: (data) => api.post('/api/v1/sales-inquiries', data),
+  update: (id, data) => api.put(`/api/v1/sales-inquiries/${id}`, data),
+  delete: (id) => api.delete(`/api/v1/sales-inquiries/${id}`),
+  updateStatus: (id, status) => api.put(`/api/v1/sales-inquiries/${id}/status`, { status }),
+  getByStatus: () => api.get('/api/v1/sales-inquiries/status/counts'),
 };
 
 export default api;
-

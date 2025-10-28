@@ -62,7 +62,7 @@ app.use(
 
 app.get("/", (req, res) => {
   res.json({
-    success: true,
+    status: true,
     message: "ERP Customer & Sales Inquiry Management API",
     version: "1.0.0",
     documentation: "/api/docs",

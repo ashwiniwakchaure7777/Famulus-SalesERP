@@ -158,3 +158,13 @@ module.exports.updateLineItemsService = async (query, payload) => {
     throw new Error("Error while updating line items in bulk");
   }
 };
+
+module.exports.findWithGroupBy = async (query) => {
+  try {
+    const result = await SALES_INQUIRY_MODEL.findAll(query);
+    return result ? result.map((i) => i.get({ plain: true })) : [];
+  } catch (error) {
+    console.error("Error while getting grouped data:", error.message);
+    throw new Error("Error while getting grouped data");
+  }
+};
