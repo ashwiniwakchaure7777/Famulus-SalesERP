@@ -180,7 +180,7 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
     const result = await findAllWithCountSalesInquiryService(queryOptions);
 
     if (result.count === 0) {
-      return res.status(200).json({
+      return res.status(201).json({
         status: false,
         message: "Sales inquiries not found",
       });
@@ -195,7 +195,7 @@ module.exports.getAllSalesInquiries = asyncHandler(async (req, res) => {
       };
     });
 
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Sales inquiries retrieved successfully",
       data: inquiriesWithCount,
@@ -234,7 +234,7 @@ module.exports.getSalesInquiryById = asyncHandler(async (req, res) => {
         message: "You can't access the other customer's inquiry",
       });
     }
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Sales inquiry retrieved successfully",
       data: inquiry,
@@ -406,7 +406,7 @@ module.exports.deleteSalesInquiry = asyncHandler(async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Sales inquiry deleted successfully",
     });
@@ -484,7 +484,7 @@ module.exports.getStatusCounts = asyncHandler(async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Status counts retrieved successfully",
       data: counts,

@@ -21,7 +21,7 @@ module.exports.registerCustomer = async (req, res) => {
     });
 
     if (isExists) {
-      return res.status(500).json({
+      return res.status(409).json({
         status: false,
         message: "Email alredy registered. Please register with another email",
       });
@@ -50,7 +50,7 @@ module.exports.registerCustomer = async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    res.status(200).json({
       status: true,
       message: `Customer ${customerPayload.customer_name} is created successfully`,
     });
@@ -90,7 +90,7 @@ module.exports.login = async (req, res) => {
     try {
       const token = generateUserToken({ ...customerData, role: "customer" });
 
-      res.status(200).json({
+      res.status(201).json({
         status: true,
         message: "Customer login successfully",
         data: {
@@ -153,13 +153,13 @@ module.exports.getAllCustomers = async (req, res) => {
     const result = await findAllWithCountCustomerService(queryOptions);
 
     if (result.count === 0) {
-      return res.status(200).json({
+      return res.status(201).json({
         status: false,
         message: "Customers not found",
       });
     }
 
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Customers retrieved successfully",
       data: result.rows,
@@ -185,7 +185,7 @@ module.exports.getCustomerById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Customer retrieved successfully",
       data: customer,
@@ -244,7 +244,7 @@ module.exports.updateCustomer = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Customer updated successfully",
       data: result.updatedRows[0],
@@ -280,7 +280,7 @@ module.exports.deleteCustomer = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    res.status(201).json({
       status: true,
       message: "Customer deleted successfully",
     });
