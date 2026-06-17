@@ -88,29 +88,31 @@ app.use((req, res, next) => {
   next();
 });
 
-initializeAssociations();
-
-sequelize.sync({ alter: false, force: false })
-  .then(() => {
-    console.log("✅ Database connected and synced successfully");
-  })
-  .catch((syncError) => {
-    console.error("❌ Error syncing database:", syncError.message);
-  });
-
-app.use("/api/v1/customers", customerRoutes);
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/sales-inquiries", salesInquiryRoutes);
+const PORT = process.env.PORT || 8056;
 
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8056;
-app.listen(PORT, () => {
+const startServer = async () => {
   try {
-    console.log(`Server is running on PORT: ${PORT}`);
-  } catch (error) {
-    console.log("Server Connection Error: ", error);
-    throw new Error("While start server error");
+    initializeAssociations();
+    await sequelize.authenticate();
+    console.log("✅ Database connection established successfully.");
+
+    await sequelize.sync({ alter: true, force: true });
+    console.log("✅ Database connected and synced successfully");
+
+    app.use("/api/v1/customers", customerRoutes);
+    app.use("/api/v1/users", userRoutes);
+    app.use("/api/v1/sales-inquiries", salesInquiryRoutes);
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on PORT: ${PORT}`);
+    });
+  } catch (startError) {
+    console.error("❌ Error starting server:", startError.message || startError);
+    process.exit(1);
   }
-});
+};
+
+startServer();
