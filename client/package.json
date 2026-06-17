@@ -1,6 +1,9 @@
 {
   "name": "erp-management-system",
   "version": "1.0.0",
+  "engines": {
+    "node": "18.x"
+  },
   "description": "Customer & Sales Inquiry Management System",
   "private": true,
   "dependencies": {
